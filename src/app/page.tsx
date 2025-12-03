@@ -30,7 +30,7 @@ export default function Home() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
 
   // --- Logic: Speech Recognition ---
   useEffect(() => {
