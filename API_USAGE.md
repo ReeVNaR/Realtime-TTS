@@ -1,84 +1,103 @@
-# Chatterbox API Usage Guide
+# Chatterbox API Documentation
 
-You can now use your deployed Chatterbox application as a backend API for your other websites.
+Your API is deployed and accessible globally.
 
-## Base URL
-Once deployed (e.g., to Vercel), your Base URL will be:
-`https://your-project-name.vercel.app`
+**Base URL:** `https://startts.vercel.app`
 
-## Endpoints
+---
 
-### 1. Chat Endpoint
-**URL**: `/api/chat`
-**Method**: `POST`
-**Content-Type**: `application/json`
+## 1. Chat API
+**Endpoint:** `POST /api/chat`
+**URL:** `https://startts.vercel.app/api/chat`
 
-**Body**:
-```json
-{
-  "message": "Hello, how are you?"
-}
+Generates a text response from the AI (Gemini 2.5 Flash) based on the user's message. The response is streamed.
+
+### Request Body (JSON)
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `message` | `string` | Yes | The user's input message. |
+
+### Example Usage (cURL)
+```bash
+curl -X POST https://startts.vercel.app/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello, what is Starshift?"}'
 ```
 
-**Response**:
-Returns a stream of text.
-
-**Example Usage (JavaScript/Frontend):**
+### Example Usage (JavaScript/Fetch)
 ```javascript
-async function sendChat(message) {
-  const response = await fetch('https://your-project-name.vercel.app/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message })
-  });
+const response = await fetch('https://startts.vercel.app/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ message: 'Hello!' })
+});
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    const chunk = decoder.decode(value);
-    console.log('Received chunk:', chunk);
-    // Append chunk to your UI
-  }
+// Note: Response is a stream
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  console.log(decoder.decode(value));
 }
 ```
 
-### 2. Text-to-Speech (TTS) Endpoint
-**URL**: `/api/tts`
-**Method**: `POST`
-**Content-Type**: `application/json`
+---
 
-**Body**:
-```json
-{
-  "text": "Hello world",
-  "voice": "en_us_006" 
-}
+## 2. Text-to-Speech (TTS) API
+**Endpoint:** `POST /api/tts`
+**URL:** `https://startts.vercel.app/api/tts`
+
+Converts text into speech using TikTok's TTS engine. Returns an MP3 audio file.
+
+### Request Body (JSON)
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `text` | `string` | Yes | The text to convert to speech. |
+| `voice` | `string` | No | Voice ID (default: `en_us_001`). See list below. |
+
+### Available Voices
+- `en_us_001` (Female / TikTok Lady)
+- `en_us_006` (Male)
+- `en_us_ghostface` (Ghostface)
+- `en_us_chewbacca` (Chewbacca)
+- `en_us_c3po` (C-3PO)
+
+### Example Usage (cURL)
+```bash
+curl -X POST https://startts.vercel.app/api/tts \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello world, this is a test.", "voice": "en_us_001"}' \
+  --output speech.mp3
 ```
-*Available voices: `en_us_001` (Female), `en_us_006` (Male), etc.*
 
-**Response**:
-Returns binary audio data (MP3).
-
-**Example Usage:**
+### Example Usage (JavaScript/Fetch)
 ```javascript
-async function playTTS(text) {
-  const response = await fetch('https://your-project-name.vercel.app/api/tts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, voice: 'en_us_006' })
-  });
+const response = await fetch('https://startts.vercel.app/api/tts', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    text: 'Welcome to Starshift.', 
+    voice: 'en_us_001' 
+  })
+});
 
-  if (response.ok) {
-    const blob = await response.blob();
-    const audioUrl = URL.createObjectURL(blob);
-    const audio = new Audio(audioUrl);
-    audio.play();
-  }
-}
+const blob = await response.blob();
+const audioUrl = URL.createObjectURL(blob);
+const audio = new Audio(audioUrl);
+audio.play();
 ```
 
-## CORS Configuration
-CORS has been enabled in `next.config.ts` to allow requests from any origin (`*`). This means you can call these endpoints from `localhost`, `your-other-site.com`, etc.
+---
+
+## Integration with n8n
+
+To use this in **n8n**, use the **HTTP Request** node:
+
+1.  **Method**: `POST`
+2.  **URL**: `https://startts.vercel.app/api/chat` (or `/api/tts`)
+3.  **Authentication**: None
+4.  **Body Content Type**: JSON
+5.  **Body Parameters**:
+    *   For Chat: `{ "message": "Your input text" }`
+    *   For TTS: `{ "text": "Your text here", "voice": "en_us_001" }`

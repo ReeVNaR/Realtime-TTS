@@ -270,6 +270,8 @@ export default function Home() {
             <div className={clsx(
               "relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-[0_0_30px_rgba(139,92,246,0.3)]",
               isSessionActive ? "bg-purple-600" : "bg-gray-800",
+              status === 'idle' && "shadow-[0_0_60px_rgba(168,85,247,0.6)] animate-pulse",
+              status === 'listening' && "bg-purple-500 shadow-[0_0_60px_rgba(168,85,247,0.8)] animate-pulse",
               status === 'speaking' && "animate-speak-bounce bg-pink-500 shadow-[0_0_50px_rgba(236,72,153,0.6)]"
             )}>
               {status === 'listening' ? <Mic className="w-8 h-8 text-white" /> :
@@ -328,6 +330,6 @@ export default function Home() {
       </div>
 
       <audio ref={audioRef} className="hidden" crossOrigin="anonymous" />
-    </main>
+    </main >
   );
 }
